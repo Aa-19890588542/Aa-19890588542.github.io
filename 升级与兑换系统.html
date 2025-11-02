@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>升级与兑换系统</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f9ff;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        h1 {
+            color: #1a73e8;
+            margin-bottom: 30px;
+        }
+        
+        .view {
+            transition: transform 0.5s ease, opacity 0.5s ease;
+        }
+        
+        .view.active {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .view.inactive {
+            position: absolute;
+            transform: translateX(100%);
+            opacity: 0;
+            width: calc(100% - 60px);
+        }
+        
+        .level-display {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #1a73e8;
+        }
+        
+        .upgrade-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 100px;
+            height: 100px;
+            font-size: 50px;
+            cursor: pointer;
+            margin: 20px 0;
+            transition: transform 0.2s, background-color 0.2s;
+            box-shadow: 0 4px 8px rgba(26, 115, 232, 0.3);
+        }
+        
+        .upgrade-btn:hover {
+            background-color: #0d5bb7;
+            transform: scale(1.05);
+        }
+        
+        .upgrade-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .auto-upgrade-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            margin: 10px 0;
+            transition: background-color 0.2s;
+        }
+        
+        .auto-upgrade-btn:hover {
+            background-color: #0d5bb7;
+        }
+        
+        .auto-upgrade-btn.active {
+            background-color: #34a853;
+        }
+        
+        .reward-section {
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 20px;
+        }
+        
+        .reward-item {
+            background-color: #e8f0fe;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .reward-name {
+            font-weight: bold;
+            color: #1a73e8;
+        }
+        
+        .redeem-btn {
+            background-color: #34a853;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .redeem-btn:hover {
+            background-color: #2d8e47;
+        }
+        
+        .redeem-btn:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #1a73e8;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .backpack-section {
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 20px;
+        }
+        
+        .backpack-item {
+            background-color: #e8f0fe;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .backpack-title {
+            font-weight: bold;
+            color: #1a73e8;
+            margin-bottom: 10px;
+        }
+        
+        .use-btn {
+            background-color: #fbbc05;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .use-btn:hover {
+            background-color: #e6ac00;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: #34a853;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
+        }
+        
+        .effect-notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #1a73e8;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            animation: slideIn 0.5s, fadeOut 0.5s 2.5s forwards;
+        }
+        
+        .view-switch-btn {
+            background-color: #1a73e8;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 15px;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: background-color 0.2s;
+        }
+        
+        .view-switch-btn:hover {
+            background-color: #0d5bb7;
+        }
+        
+        .view-switch-btn.active {
+            background-color: #34a853;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="view-switch">
+            <button class="view-switch-btn active" data-view="main">主界面</button>
+            <button class="view-switch-btn" data-view="backpack">背包</button>
+        </div>
+        
+        <div class="view active" id="main-view">
+            <h1>升级与兑换系统</h1>
+            
+            <div class="level-display">
+                当前等级: <span id="current-level">1</span>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+            
+            <button class="upgrade-btn" id="upgrade-btn">↑</button>
+            <p>点击按钮升级</p>
+            
+            <button class="auto-upgrade-btn" id="auto-upgrade-btn">开启自动升级</button>
+            <p>每秒自动升一级</p>
+            
+            <div class="reward-section">
+                <h2>可兑换物品</h2>
+                
+                <div class="reward-item">
+                    <span class="reward-name">青铜宝箱 (10级)</span>
+                    <button class="redeem-btn" id="reward-10" disabled>兑换</button>
+                </div>
+                
+                <div class="reward-item">
+                    <span class="reward-name">白银宝箱 (20级)</span>
+                    <button class="redeem-btn" id="reward-20" disabled>兑换</button>
+                </div>
+                
+                <div class="reward-item">
+                    <span class="reward-name">黄金宝箱 (30级)</span>
+                    <button class="redeem-btn" id="reward-30" disabled>兑换</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="view inactive" id="backpack-view">
+            <h1>我的背包</h1>
+            <div id="backpack-items">
+                <p>背包空空如也，快去兑换物品吧！</p>
+            </div>
+            <button class="view-switch-btn" data-view="main">返回主界面</button>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+    <div class="effect-notification" id="effect-notification"></div>
+    
+    <script>
+        let currentLevel = 1;
+        let autoUpgradeInterval = null;
+        let backpackItems = [];
+        let autoSwitchInterval = null;
+        const upgradeBtn = document.getElementById('upgrade-btn');
+        const autoUpgradeBtn = document.getElementById('auto-upgrade-btn');
+        const currentLevelDisplay = document.getElementById('current-level');
+        const progressBar = document.getElementById('progress-bar');
+        const notification = document.getElementById('notification');
+        const effectNotification = document.getElementById('effect-notification');
+        const backpackItemsContainer = document.getElementById('backpack-items');
+        const mainView = document.getElementById('main-view');
+        const backpackView = document.getElementById('backpack-view');
+        const viewSwitchBtns = document.querySelectorAll('.view-switch-btn');
+        
+        // 初始化兑换按钮状态
+        updateRewardButtons();
+        
+        // 视图切换功能
+        function switchView(viewName) {
+            // 更新按钮状态
+            viewSwitchBtns.forEach(btn => {
+                if (btn.getAttribute('data-view') === viewName) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            // 切换视图
+            if (viewName === 'main') {
+                mainView.classList.remove('inactive');
+                mainView.classList.add('active');
+                backpackView.classList.remove('active');
+                backpackView.classList.add('inactive');
+            } else if (viewName === 'backpack') {
+                backpackView.classList.remove('inactive');
+                backpackView.classList.add('active');
+                mainView.classList.remove('active');
+                mainView.classList.add('inactive');
+            }
+        }
+        
+        // 视图切换按钮事件
+        viewSwitchBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const viewName = this.getAttribute('data-view');
+                switchView(viewName);
+                
+                // 如果开启自动切换，则取消
+                if (autoSwitchInterval) {
+                    clearInterval(autoSwitchInterval);
+                    autoSwitchInterval = null;
+                    showNotification('已停止自动切换视图');
+                }
+            });
+        });
+        
+        // 自动切换视图功能
+        function startAutoSwitch() {
+            let currentView = 'main';
+            autoSwitchInterval = setInterval(() => {
+                currentView = currentView === 'main' ? 'backpack' : 'main';
+                switchView(currentView);
+            }, 5000); // 每5秒切换一次
+            showNotification('已开启自动切换视图 (5秒切换一次)');
+        }
+        
+        // 启动自动切换
+        startAutoSwitch();
+        
+        // 手动升级按钮事件
+        upgradeBtn.addEventListener('click', function() {
+            increaseLevel();
+        });
+        
+        // 自动升级按钮事件
+        autoUpgradeBtn.addEventListener('click', function() {
+            if (autoUpgradeInterval) {
+                // 如果已经在自动升级，则停止
+                clearInterval(autoUpgradeInterval);
+                autoUpgradeInterval = null;
+                autoUpgradeBtn.textContent = '开启自动升级';
+                autoUpgradeBtn.classList.remove('active');
+                showNotification('已停止自动升级');
+            } else {
+                // 如果未在自动升级，则开始
+                autoUpgradeInterval = setInterval(increaseLevel, 1000);
+                autoUpgradeBtn.textContent = '停止自动升级';
+                autoUpgradeBtn.classList.add('active');
+                showNotification('已开启自动升级');
+            }
+        });
+        
+        function increaseLevel() {
+            currentLevel++;
+            currentLevelDisplay.textContent = currentLevel;
+            
+            // 更新进度条 (每10级一个循环)
+            const progress = (currentLevel % 10) * 10;
+            progressBar.style.width = `${progress}%`;
+            
+            // 更新兑换按钮状态
+            updateRewardButtons();
+            
+            // 检查是否达到10的倍数等级
+            if (currentLevel % 10 === 0) {
+                showNotification(`恭喜达到 ${currentLevel} 级！可以兑换奖励了！`);
+            }
+        }
+        
+        function resetLevel() {
+            currentLevel = 1;
+            currentLevelDisplay.textContent = currentLevel;
+            progressBar.style.width = '0%';
+            updateRewardButtons();
+        }
+        
+        function updateRewardButtons() {
+            // 启用所有已达到等级的兑换按钮
+            document.getElementById('reward-10').disabled = currentLevel < 10;
+            document.getElementById('reward-20').disabled = currentLevel < 20;
+            document.getElementById('reward-30').disabled = currentLevel < 30;
+        }
+        
+        function showNotification(message) {
+            notification.textContent = message;
+            notification.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+        
+        function showEffectNotification(message) {
+            effectNotification.textContent = message;
+            effectNotification.style.display = 'block';
+            
+            // 3秒后自动隐藏
+            setTimeout(() => {
+                effectNotification.style.display = 'none';
+            }, 3000);
+        }
+        
+        function updateBackpackDisplay() {
+            if (backpackItems.length === 0) {
+                backpackItemsContainer.innerHTML = '<p>背包空空如也，快去兑换物品吧！</p>';
+            } else {
+                backpackItemsContainer.innerHTML = '';
+                backpackItems.forEach((item, index) => {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'backpack-item';
+                    itemElement.innerHTML = `
+                        <span>${item.name} (兑换于: ${item.time})</span>
+                        <button class="use-btn" data-index="${index}">使用</button>
+                    `;
+                    backpackItemsContainer.appendChild(itemElement);
+                });
+                
+                // 为所有使用按钮添加事件监听器
+                document.querySelectorAll('.use-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        useItem(index);
+                    });
+                });
+            }
+        }
+        
+        function useItem(index) {
+            if (index >= 0 && index < backpackItems.length) {
+                const item = backpackItems[index];
+                let effectMessage = '';
+                
+                // 根据物品类型产生不同效果
+                switch(item.name) {
+                    case '青铜宝箱':
+                        effectMessage = '使用青铜宝箱：获得5级提升！';
+                        currentLevel += 5;
+                        break;
+                    case '白银宝箱':
+                        effectMessage = '使用白银宝箱：获得10级提升！';
+                        currentLevel += 10;
+                        break;
+                    case '黄金宝箱':
+                        effectMessage = '使用黄金宝箱：获得15级提升！';
+                        currentLevel += 15;
+                        break;
+                    default:
+                        effectMessage = '使用了未知物品';
+                }
+                
+                // 更新等级显示
+                currentLevelDisplay.textContent = currentLevel;
+                const progress = (currentLevel % 10) * 10;
+                progressBar.style.width = `${progress}%`;
+                updateRewardButtons();
+                
+                // 显示效果通知
+                showEffectNotification(effectMessage);
+                
+                // 从背包中移除已使用的物品
+                backpackItems.splice(index, 1);
+                updateBackpackDisplay();
+            }
+        }
+        
+        // 兑换按钮事件
+        document.getElementById('reward-10').addEventListener('click', function() {
+            if (currentLevel >= 10) {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                backpackItems.push({
+                    name: '青铜宝箱',
+                    time: timeString
+                });
+                updateBackpackDisplay();
+                resetLevel();
+                showNotification('成功兑换青铜宝箱！已放入背包，等级已重置');
+            }
+        });
+        
+        document.getElementById('reward-20').addEventListener('click', function() {
+            if (currentLevel >= 20) {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                backpackItems.push({
+                    name: '白银宝箱',
+                    time: timeString
+                });
+                updateBackpackDisplay();
+                resetLevel();
+                showNotification('成功兑换白银宝箱！已放入背包，等级已重置');
+            }
+        });
+        
+        document.getElementById('reward-30').addEventListener('click', function() {
+            if (currentLevel >= 30) {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString();
+                backpackItems.push({
+                    name: '黄金宝箱',
+                    time: timeString
+                });
+                updateBackpackDisplay();
+                resetLevel();
+                showNotification('成功兑换黄金宝箱！已放入背包，等级已重置');
+            }
+        });
+    </script>
+</body>
+</html>
